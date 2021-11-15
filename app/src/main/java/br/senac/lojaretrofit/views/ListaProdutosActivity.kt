@@ -12,7 +12,10 @@ import retrofit2.Response
 import br.senac.lojaretrofit.models.Produto
 import com.google.android.material.snackbar.Snackbar
 import android.util.Log
+import android.view.View
 import br.senac.lojaretrofit.databinding.CardItemBinding
+import br.senac.lojaretrofit.services.API
+import com.squareup.picasso.Picasso
 
 class ListaProdutosActivity : AppCompatActivity() {
     lateinit var binding: ActivityListaProdutosBinding
@@ -30,20 +33,11 @@ class ListaProdutosActivity : AppCompatActivity() {
     }
 
     fun atualizarProdutos() {
-        // obter instancia do retrofit
-        val retrofit = Retrofit
-            .Builder()
-            .baseUrl("https://oficinacordova.azurewebsites.net")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val service = retrofit.create(ProdutoService::class.java)
-
-        val call = service.listar()
-
         val callback = object : Callback<List<Produto>> {
             override fun onResponse(call: Call<List<Produto>>, response: Response<List<Produto>>) {
                 if(response.isSuccessful) {
+                    binding.progressBar.visibility = View.GONE
+
                     val listaProdutos = response.body()
                     atualizarUI(listaProdutos)
                 } else {
@@ -56,6 +50,8 @@ class ListaProdutosActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<List<Produto>>, t: Throwable) {
+                binding.progressBar.visibility = View.GONE
+
                 Snackbar.make(binding.container, "Não é possível atualizar os produtos.",
                     Snackbar.LENGTH_LONG).show()
 
@@ -63,17 +59,25 @@ class ListaProdutosActivity : AppCompatActivity() {
             }
         }
 
-        call.enqueue(callback)
+        API.produto.listar().enqueue(callback)
+
+        binding.progressBar.visibility = View.VISIBLE
 
     }
 
     fun atualizarUI(lista: List<Produto>?) {
         binding.container.removeAllViews()
+
         lista?.forEach {
             val cardBinding = CardItemBinding.inflate(layoutInflater)
 
             cardBinding.txtName.text = it.nomeProduto
             cardBinding.txtPrice.text = it.descProduto
+
+            Picasso
+                .get()
+                .load("https://oficinacordova.azurewebsites.net/android/rest/produto/image/${it.idProduto}")
+                .into(cardBinding.imageView)
 
             binding.container.addView(cardBinding.root)
         }
