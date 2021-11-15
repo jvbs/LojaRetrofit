@@ -6,17 +6,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object API {
+    private const val baseUrl = "https://oficinacordova.azurewebsites.net"
+    private const val timeOut = 30L
+
     private val retrofit: Retrofit
         get(){
             val okHttp = OkHttpClient
                 .Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(timeOut, TimeUnit.SECONDS)
+                .readTimeout(timeOut, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit
                 .Builder()
-                .baseUrl("https://oficinacordova.azurewebsites.net")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttp)
                 .build()
